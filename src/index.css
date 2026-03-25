@@ -1,0 +1,44 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --color-primary-light: #a3e635; /* lime-400 */
+    --color-primary: #65a30d;       /* lime-600 */
+    --color-primary-dark: #3f6212;  /* lime-800 */
+  }
+
+  body {
+    @apply bg-light-bg text-light-text selection:bg-primary-light selection:text-light-text transition-colors duration-300 antialiased;
+  }
+  
+  html.dark body {
+    @apply bg-dark-bg text-dark-text selection:bg-primary selection:text-dark-text;
+  }
+}
+
+@layer utilities {
+  .shadow-soft {
+    box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.05);
+  }
+  .dark .shadow-soft {
+    box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.25);
+  }
+}
+
+/* Custom minimal scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background-color: var(--color-primary);
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background-color: var(--color-primary-dark);
+}
