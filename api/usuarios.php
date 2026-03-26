@@ -66,12 +66,37 @@ if ($method === 'POST') {
     if ($action === 'delete') {
         $id = $data['id'] ?? null;
         if ($id) {
-            $stmt = $conn->prepare("DELETE FROM usuarios WHERE id_usuario = :id");
+            // Check if generic 'Usuario Eliminado' exists
+            $stmtDelUser = $conn->prepare("SELECT id_usuario FROM usuarios WHERE username = 'Usuario Eliminado' LIMIT 1");
+            $stmtDelUser->execute();
+            $delUser = $stmtDelUser->fetch();
+            
+            if (!$delUser) {
+                // Create the placeholder generic user for re assignments
+                $conn->exec("INSERT INTO usuarios (username, password, id_rol, estado) VALUES ('Usuario Eliminado', 'DISABLED', NULL, 0)");
+                $genericUserId = $conn->lastInsertId();
+            } else {
+                $genericUserId = $delUser['id_usuario'];
+            }
+
+            if ($id == $genericUserId) {
+                echo json_encode(['success' => false, 'error' => 'Restringido: No se puede borrar la cuenta de respaldo del sistema.']);
+                exit();
+            }
+
             try {
+                // Reassign records
+                // Ventas (id_usuario)
+                $conn->prepare("UPDATE ventas SET id_usuario = :gn WHERE id_usuario = :id")->execute([':gn' => $genericUserId, ':id' => $id]);
+                // Clases (id_instructor)
+                $conn->prepare("UPDATE clases SET id_instructor = :gn WHERE id_instructor = :id")->execute([':gn' => $genericUserId, ':id' => $id]);
+
+                // Finally, Delete user
+                $stmt = $conn->prepare("DELETE FROM usuarios WHERE id_usuario = :id");
                 $stmt->execute([':id' => $id]);
                 echo json_encode(['success' => true]);
             } catch(PDOException $e) {
-                echo json_encode(['success' => false, 'error' => 'No se puede eliminar, el usuario está en uso']);
+                echo json_encode(['success' => false, 'error' => 'Error al eliminar/reasignar: ' . $e->getMessage()]);
             }
         }
     }
