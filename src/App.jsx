@@ -18,6 +18,8 @@ const Clases = React.lazy(() => import('./pages/Clases'));
 const Productos = React.lazy(() => import('./pages/Productos'));
 const Ventas = React.lazy(() => import('./pages/Ventas'));
 const Usuarios = React.lazy(() => import('./pages/Usuarios'));
+const Proveedores = React.lazy(() => import('./pages/Proveedores'));
+const Maquinaria = React.lazy(() => import('./pages/Maquinaria'));
 
 // Protected Route Component
 const ProtectedRoute = ({ children }) => {
@@ -55,6 +57,8 @@ function App() {
                   <Route path="clases" element={<Clases />} />
                   <Route path="productos" element={<Productos />} />
                   <Route path="ventas" element={<Ventas />} />
+                  <Route path="proveedores" element={<Proveedores />} />
+                  <Route path="maquinaria" element={<Maquinaria />} />
                   <Route path="usuarios" element={<Usuarios />} />
                 </Route>
                 

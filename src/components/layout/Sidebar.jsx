@@ -3,7 +3,7 @@ import { NavLink } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { 
   Dumbbell, Users, CreditCard, Calendar, 
-  Package, ShoppingCart, Settings, LogOut, CheckSquare, Shield
+  Package, ShoppingCart, Settings, LogOut, CheckSquare, Shield, Truck, Wrench
 } from 'lucide-react';
 
 const Sidebar = ({ isMobileOpen, closeMobile }) => {
@@ -15,7 +15,9 @@ const Sidebar = ({ isMobileOpen, closeMobile }) => {
     { path: '/membresias', label: 'Membresías', icon: CreditCard },
     { path: '/asistencias', label: 'Asistencias', icon: CheckSquare },
     { path: '/clases', label: 'Clases', icon: Calendar },
-    { path: '/productos', label: 'Productos', icon: Package },
+    { path: '/productos', label: 'Inv. Productos', icon: Package },
+    { path: '/maquinaria', label: 'Inv. Máquinas', icon: Wrench },
+    { path: '/proveedores', label: 'Proveedores', icon: Truck },
     { path: '/ventas', label: 'Ventas', icon: ShoppingCart },
     { path: '/usuarios', label: 'Usuarios y Roles', icon: Shield },
     { path: '/configuracion', label: 'Configuración', icon: Settings },

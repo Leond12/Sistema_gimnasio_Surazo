@@ -3,8 +3,8 @@
 -- https://www.phpmyadmin.net/
 --
 -- Servidor: 127.0.0.1:3306
--- Tiempo de generación: 25-03-2026 a las 15:49:01
--- Versión del servidor: 11.8.3-MariaDB-log
+-- Tiempo de generación: 27-03-2026 a las 15:45:31
+-- Versión del servidor: 11.8.6-MariaDB-log
 -- Versión de PHP: 7.2.34
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
@@ -50,6 +50,34 @@ CREATE TABLE `clases` (
 -- --------------------------------------------------------
 
 --
+-- Estructura de tabla para la tabla `compras`
+--
+
+CREATE TABLE `compras` (
+  `id_compra` int(11) NOT NULL,
+  `id_proveedor` int(11) NOT NULL,
+  `fecha_compra` datetime DEFAULT current_timestamp(),
+  `total_compra` decimal(10,2) NOT NULL DEFAULT 0.00,
+  `comprobante_nro` varchar(50) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Estructura de tabla para la tabla `detalle_compras`
+--
+
+CREATE TABLE `detalle_compras` (
+  `id_detalle_compra` int(11) NOT NULL,
+  `id_compra` int(11) NOT NULL,
+  `id_producto` int(11) NOT NULL,
+  `cantidad` int(11) NOT NULL,
+  `precio_unitario` decimal(10,2) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------
+
+--
 -- Estructura de tabla para la tabla `detalle_ventas`
 --
 
@@ -59,6 +87,33 @@ CREATE TABLE `detalle_ventas` (
   `id_producto` int(11) DEFAULT NULL,
   `cantidad` int(11) NOT NULL,
   `precio_unitario` decimal(10,2) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Estructura de tabla para la tabla `maquinaria_inventario`
+--
+
+CREATE TABLE `maquinaria_inventario` (
+  `id_maquina` int(11) NOT NULL,
+  `nombre_maquina` varchar(100) NOT NULL,
+  `id_tipo` int(11) DEFAULT NULL,
+  `fecha_adquisicion` date DEFAULT NULL,
+  `estado` enum('activa','inactiva','mantenimiento') DEFAULT 'activa',
+  `ultimo_mantenimiento` date DEFAULT NULL,
+  `observaciones` text DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Estructura de tabla para la tabla `maquinaria_tipos`
+--
+
+CREATE TABLE `maquinaria_tipos` (
+  `id_tipo` int(11) NOT NULL,
+  `nombre_tipo` varchar(50) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- --------------------------------------------------------
@@ -120,6 +175,28 @@ CREATE TABLE `productos` (
   `stock_minimo` int(11) DEFAULT 5
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+--
+-- Volcado de datos para la tabla `productos`
+--
+
+INSERT INTO `productos` (`id_producto`, `nombre_producto`, `descripcion`, `precio_venta`, `stock_actual`, `stock_minimo`) VALUES
+(2, 'Coca Cola 1lts', 'Coca cola pequeña de un litro', 5.00, 60, 10);
+
+-- --------------------------------------------------------
+
+--
+-- Estructura de tabla para la tabla `proveedores`
+--
+
+CREATE TABLE `proveedores` (
+  `id_proveedor` int(11) NOT NULL,
+  `nombre_empresa` varchar(100) NOT NULL,
+  `contacto_nombre` varchar(100) DEFAULT NULL,
+  `telefono` varchar(20) DEFAULT NULL,
+  `email` varchar(100) DEFAULT NULL,
+  `direccion` text DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 -- --------------------------------------------------------
 
 --
@@ -144,6 +221,14 @@ CREATE TABLE `roles` (
   `nombre_rol` varchar(50) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+--
+-- Volcado de datos para la tabla `roles`
+--
+
+INSERT INTO `roles` (`id_rol`, `nombre_rol`) VALUES
+(1, 'Administrador'),
+(2, 'Cajero');
+
 -- --------------------------------------------------------
 
 --
@@ -154,11 +239,10 @@ CREATE TABLE `socios` (
   `id_socio` int(11) NOT NULL,
   `nombre` varchar(100) NOT NULL,
   `apellido` varchar(100) NOT NULL,
-  `dni` varchar(20) NOT NULL,
+  `ci` varchar(20) NOT NULL,
   `email` varchar(100) DEFAULT NULL,
   `telefono` varchar(20) DEFAULT NULL,
-  `fecha_registro` date DEFAULT curdate(),
-  `foto_url` varchar(255) DEFAULT NULL
+  `fecha_registro` date DEFAULT curdate()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- --------------------------------------------------------
@@ -174,6 +258,16 @@ CREATE TABLE `usuarios` (
   `id_rol` int(11) DEFAULT NULL,
   `estado` tinyint(1) DEFAULT 1
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Volcado de datos para la tabla `usuarios`
+--
+
+INSERT INTO `usuarios` (`id_usuario`, `username`, `password`, `id_rol`, `estado`) VALUES
+(1, 'JacintoPerez', '$2y$10$YucQ9IMalNxT7v68ql2XHuQsCu73AehW4oqMBpOmAa6imIoWE15S6', 1, 1),
+(45, 'Usuario Eliminado', '123', 1, 1),
+(46, 'PedroPorro', '$2y$10$r46zhJGxCBywxhvC.EHCh.guCCZBo57GbrdAuLsJVj2YkmV1mRZJi', 2, 1),
+(47, 'Ugarte', '$2y$10$R.GdgXb4LYbDYRfvdj/QFuPieLwRwuO3zXmaqd.6PlW4MaxGiGhGa', 2, 0);
 
 -- --------------------------------------------------------
 
@@ -208,12 +302,40 @@ ALTER TABLE `clases`
   ADD KEY `id_instructor` (`id_instructor`);
 
 --
+-- Indices de la tabla `compras`
+--
+ALTER TABLE `compras`
+  ADD PRIMARY KEY (`id_compra`),
+  ADD KEY `id_proveedor` (`id_proveedor`);
+
+--
+-- Indices de la tabla `detalle_compras`
+--
+ALTER TABLE `detalle_compras`
+  ADD PRIMARY KEY (`id_detalle_compra`),
+  ADD KEY `id_compra` (`id_compra`),
+  ADD KEY `id_producto` (`id_producto`);
+
+--
 -- Indices de la tabla `detalle_ventas`
 --
 ALTER TABLE `detalle_ventas`
   ADD PRIMARY KEY (`id_detalle`),
   ADD KEY `id_venta` (`id_venta`),
   ADD KEY `id_producto` (`id_producto`);
+
+--
+-- Indices de la tabla `maquinaria_inventario`
+--
+ALTER TABLE `maquinaria_inventario`
+  ADD PRIMARY KEY (`id_maquina`),
+  ADD KEY `maquinaria_ibfk_1` (`id_tipo`);
+
+--
+-- Indices de la tabla `maquinaria_tipos`
+--
+ALTER TABLE `maquinaria_tipos`
+  ADD PRIMARY KEY (`id_tipo`);
 
 --
 -- Indices de la tabla `membresias`
@@ -243,6 +365,12 @@ ALTER TABLE `productos`
   ADD PRIMARY KEY (`id_producto`);
 
 --
+-- Indices de la tabla `proveedores`
+--
+ALTER TABLE `proveedores`
+  ADD PRIMARY KEY (`id_proveedor`);
+
+--
 -- Indices de la tabla `reservas`
 --
 ALTER TABLE `reservas`
@@ -261,7 +389,7 @@ ALTER TABLE `roles`
 --
 ALTER TABLE `socios`
   ADD PRIMARY KEY (`id_socio`),
-  ADD UNIQUE KEY `dni` (`dni`);
+  ADD UNIQUE KEY `dni` (`ci`);
 
 --
 -- Indices de la tabla `usuarios`
@@ -296,10 +424,34 @@ ALTER TABLE `clases`
   MODIFY `id_clase` int(11) NOT NULL AUTO_INCREMENT;
 
 --
+-- AUTO_INCREMENT de la tabla `compras`
+--
+ALTER TABLE `compras`
+  MODIFY `id_compra` int(11) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT de la tabla `detalle_compras`
+--
+ALTER TABLE `detalle_compras`
+  MODIFY `id_detalle_compra` int(11) NOT NULL AUTO_INCREMENT;
+
+--
 -- AUTO_INCREMENT de la tabla `detalle_ventas`
 --
 ALTER TABLE `detalle_ventas`
   MODIFY `id_detalle` int(11) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT de la tabla `maquinaria_inventario`
+--
+ALTER TABLE `maquinaria_inventario`
+  MODIFY `id_maquina` int(11) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT de la tabla `maquinaria_tipos`
+--
+ALTER TABLE `maquinaria_tipos`
+  MODIFY `id_tipo` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT de la tabla `membresias`
@@ -323,7 +475,13 @@ ALTER TABLE `planes`
 -- AUTO_INCREMENT de la tabla `productos`
 --
 ALTER TABLE `productos`
-  MODIFY `id_producto` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id_producto` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+
+--
+-- AUTO_INCREMENT de la tabla `proveedores`
+--
+ALTER TABLE `proveedores`
+  MODIFY `id_proveedor` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT de la tabla `reservas`
@@ -335,19 +493,19 @@ ALTER TABLE `reservas`
 -- AUTO_INCREMENT de la tabla `roles`
 --
 ALTER TABLE `roles`
-  MODIFY `id_rol` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id_rol` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
 -- AUTO_INCREMENT de la tabla `socios`
 --
 ALTER TABLE `socios`
-  MODIFY `id_socio` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id_socio` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
 -- AUTO_INCREMENT de la tabla `usuarios`
 --
 ALTER TABLE `usuarios`
-  MODIFY `id_usuario` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id_usuario` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=48;
 
 --
 -- AUTO_INCREMENT de la tabla `ventas`
@@ -372,11 +530,30 @@ ALTER TABLE `clases`
   ADD CONSTRAINT `clases_ibfk_1` FOREIGN KEY (`id_instructor`) REFERENCES `usuarios` (`id_usuario`);
 
 --
+-- Filtros para la tabla `compras`
+--
+ALTER TABLE `compras`
+  ADD CONSTRAINT `compras_ibfk_1` FOREIGN KEY (`id_proveedor`) REFERENCES `proveedores` (`id_proveedor`) ON DELETE CASCADE;
+
+--
+-- Filtros para la tabla `detalle_compras`
+--
+ALTER TABLE `detalle_compras`
+  ADD CONSTRAINT `detalle_compras_ibfk_1` FOREIGN KEY (`id_compra`) REFERENCES `compras` (`id_compra`) ON DELETE CASCADE,
+  ADD CONSTRAINT `detalle_compras_ibfk_2` FOREIGN KEY (`id_producto`) REFERENCES `productos` (`id_producto`) ON DELETE CASCADE;
+
+--
 -- Filtros para la tabla `detalle_ventas`
 --
 ALTER TABLE `detalle_ventas`
   ADD CONSTRAINT `detalle_ventas_ibfk_1` FOREIGN KEY (`id_venta`) REFERENCES `ventas` (`id_venta`),
   ADD CONSTRAINT `detalle_ventas_ibfk_2` FOREIGN KEY (`id_producto`) REFERENCES `productos` (`id_producto`);
+
+--
+-- Filtros para la tabla `maquinaria_inventario`
+--
+ALTER TABLE `maquinaria_inventario`
+  ADD CONSTRAINT `maquinaria_ibfk_1` FOREIGN KEY (`id_tipo`) REFERENCES `maquinaria_tipos` (`id_tipo`);
 
 --
 -- Filtros para la tabla `membresias`
