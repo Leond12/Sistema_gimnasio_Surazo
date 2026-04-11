@@ -132,54 +132,67 @@ const GenericCRUD = ({ title, endpoint, columns, formFields, cssModule }) => {
         </div>
       </div>
 
-      <div className="bg-light-surface dark:bg-dark-surface rounded-xl shadow-soft border border-light-border dark:border-dark-border overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full text-left text-sm text-light-textMuted dark:text-dark-textMuted">
-            <thead className="bg-gray-50/50 dark:bg-gray-800/50 text-light-text dark:text-dark-text border-b border-light-border dark:border-dark-border uppercase text-xs font-semibold">
-              <tr>
-                {columns.map((col, idx) => <th key={idx} className="px-6 py-4">{col.label}</th>)}
-                <th className="px-6 py-4 text-right">Acciones</th>
-              </tr>
-            </thead>
-            <tbody>
-              {loading ? (
-                <tr>
-                  <td colSpan={columns.length + 1} className="px-6 py-8 text-center text-primary">
-                    <div className="animate-spin inline-block w-6 h-6 border-[3px] border-current border-t-transparent text-primary rounded-full" />
-                  </td>
-                </tr>
-              ) : filteredData.length === 0 ? (
-                <tr>
-                  <td colSpan={columns.length + 1} className="px-6 py-8 text-center">No hay registros encontrados.</td>
-                </tr>
-              ) : (
-                filteredData.map((item, idx) => (
-                  <motion.tr 
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: idx * 0.05 }}
-                    key={item.id || idx}
-                    className="border-b border-light-border dark:border-dark-border hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors"
-                  >
-                    {columns.map((col, cidx) => (
-                      <td key={cidx} className="px-6 py-4">
-                        {col.render ? col.render(item[col.key], item) : item[col.key]}
-                      </td>
-                    ))}
-                    <td className="px-6 py-4 flex justify-end gap-3">
-                      <button onClick={() => openModal(item)} className="text-blue-500 hover:text-blue-600 transition-colors">
-                        <Edit className="w-5 h-5" />
-                      </button>
-                      <button onClick={() => handleDelete(item.id || item[columns[0].key])} className="text-red-500 hover:text-red-600 transition-colors">
-                        <Trash2 className="w-5 h-5" />
-                      </button>
-                    </td>
-                  </motion.tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+        {loading ? (
+          <div className="col-span-full py-12 flex justify-center text-primary">
+            <div className="animate-spin inline-block w-10 h-10 border-[4px] border-current border-t-transparent text-primary rounded-full" />
+          </div>
+        ) : filteredData.length === 0 ? (
+          <div className="col-span-full py-12 text-center text-light-textMuted dark:text-dark-textMuted bg-light-surface dark:bg-dark-surface rounded-xl shadow-soft border border-light-border dark:border-dark-border">
+            No hay registros encontrados.
+          </div>
+        ) : (
+          filteredData.map((item, idx) => (
+            <motion.div 
+              initial={{ opacity: 0, y: 15 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: idx * 0.05 }}
+              key={item.id || idx}
+              className="bg-light-surface dark:bg-dark-surface rounded-2xl shadow-soft border border-light-border dark:border-dark-border overflow-hidden hover:shadow-xl hover:-translate-y-1 hover:border-primary/30 transition-all duration-300 flex flex-col relative group"
+            >
+              {/* Header / Top Decor */}
+              <div className="h-2 w-full bg-gradient-to-r from-primary to-primary-dark"></div>
+              
+              <div className="p-5 flex flex-col h-full">
+                {/* ID and Primary Value */}
+                <div className="flex justify-between items-start mb-4">
+                  <div className="flex items-center gap-3 max-w-[70%]">
+                    <span className="bg-primary/10 text-primary dark:bg-primary/20 font-bold px-2 py-1 rounded-lg text-xs shrink-0 shadow-sm border border-primary/20">
+                      #{item[columns[0].key]}
+                    </span>
+                    {columns.length > 1 && (
+                      <h3 className="font-bold text-[1.05rem] text-light-text dark:text-dark-text truncate">
+                        {columns[1].render ? columns[1].render(item[columns[1].key], item) : item[columns[1].key]}
+                      </h3>
+                    )}
+                  </div>
+                  
+                  {/* Actions (Floating on hover/visible) */}
+                  <div className="flex gap-1 shrink-0">
+                    <button onClick={() => openModal(item)} className="p-1.5 text-gray-400 hover:text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/30 rounded-lg transition-all focus:outline-none focus:ring-2 focus:ring-blue-500/50" title="Editar">
+                      <Edit className="w-4 h-4" />
+                    </button>
+                    <button onClick={() => handleDelete(item.id || item[columns[0].key])} className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-lg transition-all focus:outline-none focus:ring-2 focus:ring-red-500/50" title="Eliminar">
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
+                </div>
+
+                {/* Rest of the data points */}
+                <div className="flex-1 flex flex-col gap-2.5">
+                  {columns.slice(2).map((col, cidx) => (
+                    <div key={cidx} className="flex justify-between items-center text-sm border-b border-light-border/50 dark:border-dark-border/50 pb-2 last:border-0 last:pb-0">
+                      <span className="text-light-textMuted dark:text-dark-textMuted font-medium pr-2 max-w-[45%] truncate">{col.label}</span>
+                      <span className="text-light-text dark:text-dark-text font-semibold text-right flex-1 truncate">
+                        {col.render ? col.render(item[col.key], item) : (item[col.key] || <span className="text-gray-300 dark:text-gray-600">-</span>)}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </motion.div>
+          ))
+        )}
       </div>
 
       <AnimatePresence>
