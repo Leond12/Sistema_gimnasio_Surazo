@@ -2,6 +2,14 @@
 require_once 'db.php';
 $method = $_SERVER['REQUEST_METHOD'];
 
+// Helper to insert automated notification
+$insertNotification = function($tipo, $texto) use ($conn) {
+    try {
+        $stmt = $conn->prepare("INSERT INTO notificaciones (tipo, texto) VALUES (?, ?)");
+        $stmt->execute([$tipo, $texto]);
+    } catch(PDOException $e) { /* ignore error during notification insert */ }
+};
+
 if ($method === 'GET') {
     $action = $_GET['action'] ?? '';
     if ($action === 'read') {
@@ -30,7 +38,12 @@ if ($method === 'POST') {
                 ':rol' => $data['id_rol'] ?? null,
                 ':estado' => $data['estado'] ?? 1
             ]);
-            echo json_encode(['success' => true, 'id' => $conn->lastInsertId()]);
+            $newId = $conn->lastInsertId();
+            
+            // Notificar
+            $insertNotification('success', "Nuevo usuario creado: " . $data['username']);
+            
+            echo json_encode(['success' => true, 'id' => $newId]);
         } catch(PDOException $e) {
             echo json_encode(['success' => false, 'error' => $e->getMessage()]);
         }
@@ -57,6 +70,10 @@ if ($method === 'POST') {
         $stmt = $conn->prepare($sql);
         try {
             $stmt->execute($params);
+            
+            // Notificar
+            $insertNotification('info', "Usuario actualizado: " . $data['username']);
+            
             echo json_encode(['success' => true]);
         } catch(PDOException $e) {
             echo json_encode(['success' => false, 'error' => $e->getMessage()]);
@@ -66,6 +83,15 @@ if ($method === 'POST') {
     if ($action === 'delete') {
         $id = $data['id'] ?? null;
         if ($id) {
+            // Get username before deletion
+            $usernameToDelete = "ID: $id";
+            try {
+                $stmtFetch = $conn->prepare("SELECT username FROM usuarios WHERE id_usuario = :id");
+                $stmtFetch->execute([':id' => $id]);
+                $val = $stmtFetch->fetchColumn();
+                if ($val) $usernameToDelete = $val;
+            } catch(PDOException $e) {}
+
             // Check if generic 'Usuario Eliminado' exists
             $stmtDelUser = $conn->prepare("SELECT id_usuario FROM usuarios WHERE username = 'Usuario Eliminado' LIMIT 1");
             $stmtDelUser->execute();
@@ -94,6 +120,10 @@ if ($method === 'POST') {
                 // Finally, Delete user
                 $stmt = $conn->prepare("DELETE FROM usuarios WHERE id_usuario = :id");
                 $stmt->execute([':id' => $id]);
+                
+                // Notificar
+                $insertNotification('warning', "Usuario eliminado: " . $usernameToDelete);
+                
                 echo json_encode(['success' => true]);
             } catch(PDOException $e) {
                 echo json_encode(['success' => false, 'error' => 'Error al eliminar/reasignar: ' . $e->getMessage()]);
