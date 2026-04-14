@@ -24,57 +24,59 @@ const Login = () => {
   return (
     <div className="min-h-screen w-full flex items-center justify-center bg-light-bg dark:bg-dark-bg p-4 relative overflow-hidden transition-colors duration-300">
       
-      {/* Background Animated Blobs */}
-      <div className="absolute top-[-10%] left-[-10%] w-96 h-96 bg-primary-light/30 rounded-full mix-blend-multiply filter blur-3xl opacity-70 animate-blob"></div>
-      <div className="absolute top-[-10%] right-[-10%] w-96 h-96 bg-primary/30 rounded-full mix-blend-multiply filter blur-3xl opacity-70 animate-blob animation-delay-2000"></div>
-      <div className="absolute bottom-[-20%] left-[20%] w-96 h-96 bg-primary-dark/30 rounded-full mix-blend-multiply filter blur-3xl opacity-70 animate-blob animation-delay-4000"></div>
+      {/* Background Animated Blobs - Radical Upgrade */}
+      <div className="absolute top-[-20%] left-[-20%] w-[500px] h-[500px] bg-primary/20 rounded-full mix-blend-screen filter blur-[120px] opacity-40 animate-blob"></div>
+      <div className="absolute top-[20%] right-[-10%] w-[400px] h-[400px] bg-blue-500/10 rounded-full mix-blend-screen filter blur-[100px] opacity-30 animate-blob animation-delay-2000"></div>
+      <div className="absolute bottom-[-10%] left-[10%] w-[600px] h-[600px] bg-purple-500/10 rounded-full mix-blend-screen filter blur-[150px] opacity-30 animate-blob animation-delay-4000"></div>
 
       <motion.div 
-        initial={{ opacity: 0, y: 30 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6, ease: "easeOut" }}
-        className="relative w-full max-w-md bg-light-surface/80 dark:bg-dark-surface/80 backdrop-blur-xl p-8 rounded-3xl shadow-2xl border border-white/20 dark:border-white/10"
+        initial={{ opacity: 0, scale: 0.9, y: 30 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        transition={{ duration: 0.8, type: 'spring', stiffness: 100 }}
+        className="relative w-full max-w-md bg-white/20 dark:bg-black/40 backdrop-blur-[30px] p-10 rounded-[3rem] shadow-[0_0_50px_rgba(0,0,0,0.1)] border border-white/40 dark:border-white/10 ring-1 ring-white/20"
       >
-        <div className="text-center mb-8">
+        <div className="absolute -top-10 -left-10 w-32 h-32 bg-primary/20 blur-3xl -z-10 animate-pulse"></div>
+        
+        <div className="text-center mb-10">
           <motion.div 
-            initial={{ scale: 0 }}
-            animate={{ scale: 1 }}
-            transition={{ type: "spring", stiffness: 200, damping: 15, delay: 0.2 }}
-            className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-primary/20 text-primary mb-4"
+            initial={{ rotate: -180, scale: 0 }}
+            animate={{ rotate: 0, scale: 1 }}
+            transition={{ type: "spring", stiffness: 200, damping: 20, delay: 0.2 }}
+            className="inline-flex items-center justify-center w-24 h-24 rounded-3xl bg-gradient-to-br from-primary to-primary-dark text-white mb-6 p-5 shadow-2xl shadow-primary/40 rotate-12"
           >
-            <Dumbbell className="w-10 h-10" />
+            <Dumbbell className="w-full h-full" />
           </motion.div>
-          <h1 className="text-3xl font-extrabold text-light-text dark:text-dark-text tracking-tight">
-            GYM<span className="text-primary">ERP</span>
+          <h1 className="text-5xl font-black text-light-text dark:text-white tracking-tighter">
+            SURAZO<span className="text-primary font-light italic">ERP</span>
           </h1>
-          <p className="text-sm text-light-textMuted dark:text-dark-textMuted mt-2">
-            Ingresa a tu cuenta para continuar
+          <p className="text-xs uppercase tracking-[0.3em] font-black text-gray-500 dark:text-gray-400 mt-4">
+            Elite Access Portal
           </p>
         </div>
 
-        <form onSubmit={handleLogin} className="space-y-6">
-          <div className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-light-text dark:text-dark-text mb-1">
-                Usuario
+        <form onSubmit={handleLogin} className="space-y-8">
+          <div className="space-y-5">
+            <div className="relative group">
+              <label className="absolute -top-2.5 left-5 bg-white dark:bg-gray-900 px-2 py-0.5 rounded-md text-[10px] font-black uppercase text-gray-400 z-10 border border-gray-100 dark:border-gray-800">
+                Identificador
               </label>
               <input
                 type="text"
                 required
-                className="w-full px-4 py-3 bg-white/50 dark:bg-black/20 border border-light-border dark:border-dark-border rounded-xl focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all dark:text-white"
-                placeholder="Ingresa tu usuario"
+                className="w-full px-6 py-4 bg-white/40 dark:bg-black/20 border-none rounded-2xl ring-1 ring-black/5 dark:ring-white/10 focus:ring-2 focus:ring-primary outline-none transition-all dark:text-white font-bold"
+                placeholder="Nombre de usuario"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
               />
             </div>
-            <div>
-              <label className="block text-sm font-medium text-light-text dark:text-dark-text mb-1">
-                Contraseña
+            <div className="relative group">
+              <label className="absolute -top-2.5 left-5 bg-white dark:bg-gray-900 px-2 py-0.5 rounded-md text-[10px] font-black uppercase text-gray-400 z-10 border border-gray-100 dark:border-gray-800">
+                Clave Segura
               </label>
               <input
                 type="password"
                 required
-                className="w-full px-4 py-3 bg-white/50 dark:bg-black/20 border border-light-border dark:border-dark-border rounded-xl focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all dark:text-white"
+                className="w-full px-6 py-4 bg-white/40 dark:bg-black/20 border-none rounded-2xl ring-1 ring-black/5 dark:ring-white/10 focus:ring-2 focus:ring-primary outline-none transition-all dark:text-white font-bold"
                 placeholder="••••••••"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
@@ -83,22 +85,28 @@ const Login = () => {
           </div>
 
           <motion.button
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
+            whileHover={{ scale: 1.05, y: -2 }}
+            whileTap={{ scale: 0.95 }}
             type="submit"
             disabled={isLoading}
-            className="w-full flex items-center justify-center py-3 px-4 bg-primary hover:bg-primary-dark text-white rounded-xl font-semibold shadow-lg shadow-primary/30 transition-all disabled:opacity-70 disabled:cursor-not-allowed"
+            className="w-full flex items-center justify-center py-4 px-6 bg-gradient-to-r from-primary to-primary-dark text-white rounded-2xl font-black uppercase tracking-widest text-xs shadow-2xl shadow-primary/30 transition-all disabled:opacity-70"
           >
             {isLoading ? (
-              <div className="w-6 h-6 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+              <div className="w-6 h-6 border-4 border-white/30 border-t-white rounded-full animate-spin" />
             ) : (
               <>
-                Iniciar Sesión
-                <LogIn className="w-5 h-5 ml-2" />
+                Desbloquear Sistema
+                <LogIn className="w-5 h-5 ml-3" />
               </>
             )}
           </motion.button>
         </form>
+
+        <div className="mt-10 text-center">
+             <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">
+                Surazo Fitness Ecosystem &copy; 2026
+             </p>
+        </div>
       </motion.div>
 
       <style jsx="true">{`

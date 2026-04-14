@@ -2,18 +2,15 @@
 require_once 'db.php';
 $method = $_SERVER['REQUEST_METHOD'];
 
-if ($method === 'GET') {
-    $action = $_GET['action'] ?? '';
-    if ($action === 'read') {
-        $stmt = $conn->prepare("
-            SELECT c.*, u.username AS instructor_nombre 
-            FROM clases c 
-            LEFT JOIN usuarios u ON c.id_instructor = u.id_usuario
-        ");
-        $stmt->execute();
-        echo json_encode(['success' => true, 'data' => $stmt->fetchAll()]);
-        exit();
-    }
+if ($method === 'GET' && isset($_GET['action']) && $_GET['action'] === 'read') {
+    $stmt = $conn->prepare("
+        SELECT c.*, u.username AS instructor_nombre 
+        FROM clases c 
+        LEFT JOIN usuarios u ON c.id_instructor = u.id_usuario
+    ");
+    $stmt->execute();
+    echo json_encode(['success' => true, 'data' => $stmt->fetchAll()]);
+    exit();
 }
 
 require_once 'generic_crud.php';

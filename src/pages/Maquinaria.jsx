@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAlert } from '../context/AlertContext';
-import { Search, Plus, Edit, Trash2, X, Wrench, Activity, Clock, ServerOff } from 'lucide-react';
+import { Search, Plus, Edit, Trash2, X, Wrench, Activity, Clock, ServerOff, Settings, Calendar, Info } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import './Maquinaria.css';
 
 const Maquinaria = () => {
   const [maquinas, setMaquinas] = useState([]);
@@ -27,13 +26,8 @@ const Maquinaria = () => {
       ]);
       const maqData = await resMaq.json();
       const tiposData = await resTipos.json();
-      
-      if (maqData.success) {
-        setMaquinas(maqData.data);
-      }
-      if (tiposData.success) {
-        setTipos(tiposData.data);
-      }
+      if (maqData.success) setMaquinas(maqData.data);
+      if (tiposData.success) setTipos(tiposData.data);
     } catch (e) {
       showAlert('Error conectando con el servidor', 'error');
     } finally {
@@ -85,21 +79,21 @@ const Maquinaria = () => {
       const result = await res.json();
 
       if (result.success) {
-        showAlert(editingId ? 'Máquina actualizada' : 'Máquina registrada', 'success');
+        showAlert(editingId ? 'Equipo actualizado' : 'Equipo registrado', 'success');
         closeModal();
         fetchData();
       } else {
         showAlert(result.error || 'Error en la operación', 'error');
       }
     } catch (e) {
-      showAlert('Error conectando con el servidor', 'error');
+      showAlert('Error de conexión', 'error');
     }
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
     if (editingId) {
-      showConfirm('¿Estás seguro de actualizar el estado/datos de la máquina?', () => confirmSubmit());
+      showConfirm('¿Actualizar registros técnicos de la máquina?', () => confirmSubmit());
     } else {
       confirmSubmit();
     }
@@ -107,7 +101,7 @@ const Maquinaria = () => {
 
   const handleDelete = (maq) => {
     showConfirm(
-      `¿Desea dar de baja permanentemente a "${maq.nombre_maquina}" del inventario?`, 
+      `¿Retirar "${maq.nombre_maquina}" definitivamente?`, 
       async () => {
         try {
           const res = await fetch(`${apiUrl}/maquinaria.php`, {
@@ -117,95 +111,105 @@ const Maquinaria = () => {
           });
           const result = await res.json();
           if (result.success) {
-            showAlert('Equipo eliminado del sistema.', 'success');
+            showAlert('Equipo eliminado.', 'success');
             fetchData();
           } else {
-            showAlert(result.error || 'Error al eliminar', 'error');
+            showAlert(result.error || 'No se puede eliminar', 'error');
           }
         } catch (e) {
-          showAlert('Comprobación fallida, verifique su red', 'error');
+          showAlert('Error de conexión', 'error');
         }
       }
     );
   };
 
   const filteredMaquinas = maquinas.filter(m => {
-    const matchesSearch = m.nombre_maquina.toLowerCase().includes(search.toLowerCase()) || 
-                          (m.tipo_nombre && m.tipo_nombre.toLowerCase().includes(search.toLowerCase()));
-    
+    const term = search.toLowerCase();
+    const matchesSearch = m.nombre_maquina.toLowerCase().includes(term) || 
+                          (m.tipo_nombre && m.tipo_nombre.toLowerCase().includes(term));
     if (filter === 'todas') return matchesSearch;
     return m.estado === filter && matchesSearch;
   });
 
   const getStatusAppearance = (estado) => {
     switch (estado) {
-      case 'activa': return { color: 'green', text: 'OPERATIVA', icon: <Activity className="w-5 h-5 text-green-500 dark:text-green-400" /> };
-      case 'mantenimiento': return { color: 'yellow', text: 'REPARACIÓN', icon: <Clock className="w-5 h-5 text-yellow-500 dark:text-yellow-400" /> };
-      case 'inactiva': return { color: 'red', text: 'AVERÍA / INACTIVA', icon: <ServerOff className="w-5 h-5 text-red-500 dark:text-red-400" /> };
-      default: return { color: 'gray', text: estado, icon: <Wrench className="w-5 h-5 text-gray-500" /> };
+      case 'activa': return { color: 'from-green-500 to-emerald-600', text: 'OPERATIVA', icon: <Activity className="w-6 h-6 text-green-500" /> };
+      case 'mantenimiento': return { color: 'from-orange-400 to-orange-600', text: 'REPARACIÓN', icon: <Clock className="w-6 h-6 text-orange-500" /> };
+      case 'inactiva': return { color: 'from-red-500 to-red-700', text: 'AVERÍA', icon: <ServerOff className="w-6 h-6 text-red-500" /> };
+      default: return { color: 'from-gray-400 to-gray-600', text: estado, icon: <Settings className="w-6 h-6 text-gray-400" /> };
     }
   };
 
   return (
-    <div className="space-y-6 animate-fade-in">
-      <div className="flex flex-col xl:flex-row justify-between items-start xl:items-center gap-6">
-        <div>
-          <h1 className="text-3xl font-extrabold text-light-text dark:text-dark-text tracking-tight flex items-center gap-3">
-            <Wrench className="w-8 h-8 text-primary" />
-            Control de Maquinaria
-          </h1>
-          <p className="text-light-textMuted dark:text-dark-textMuted mt-1 ml-11">
-            Gestión de equipos operativos, rastreo de mantenimientos y daños.
-          </p>
-        </div>
-        
-        <div className="flex flex-col sm:flex-row w-full xl:w-auto gap-4 items-center">
-          <div className="bg-light-surface dark:bg-dark-surface p-1 rounded-xl flex shadow-sm border border-light-border dark:border-dark-border w-full sm:w-auto overflow-x-auto">
-            {['todas', 'activa', 'mantenimiento', 'inactiva'].map(f => (
-              <button
-                key={f}
-                onClick={() => setFilter(f)}
-                className={`py-2 px-3 rounded-lg text-sm font-semibold capitalize transition-all whitespace-nowrap ${
-                  filter === f 
-                    ? 'bg-primary text-white shadow-md' 
-                    : 'text-light-textMuted dark:text-dark-textMuted hover:bg-gray-100 dark:hover:bg-gray-800'
-                }`}
-              >
-                {f === 'mantenimiento' ? 'Mantenimiento' : f}
-              </button>
-            ))}
-          </div>
+    <div className="space-y-8 animate-fade-in relative z-0">
+      {/* Header Exotic */}
+      <div className="glass-panel rounded-3xl p-6 sm:p-8 relative overflow-hidden">
+        <div className="absolute top-0 right-0 w-80 h-80 bg-primary/20 blur-[80px] -z-10 rounded-full"></div>
+        <div className="absolute bottom-0 left-0 w-40 h-40 bg-orange-500/10 blur-2xl -z-10 rounded-full translate-y-1/2"></div>
 
-          <div className="relative w-full sm:w-64">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-            <input 
-              type="text" 
-              placeholder="Buscar máquina o tipo..." 
-              className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-light-border dark:border-dark-border bg-light-surface dark:bg-dark-surface focus:ring-2 focus:ring-primary outline-none transition-all dark:text-white shadow-sm"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-            />
+        <div className="relative z-10 flex flex-col xl:flex-row justify-between items-start xl:items-center gap-6">
+          <div className="flex items-center gap-4">
+            <div className="bg-white/50 dark:bg-black/50 p-4 rounded-2xl shadow-lg border border-white/30 dark:border-white/5 animate-float flex-shrink-0">
+              <Wrench className="w-10 h-10 text-primary" />
+            </div>
+            <div>
+              <h1 className="text-4xl font-black bg-clip-text text-transparent bg-gradient-to-r from-light-text to-primary dark:from-white dark:to-primary-light tracking-tight">
+                Ingeniería Deportiva
+              </h1>
+              <p className="text-light-textMuted dark:text-gray-400 mt-1 font-medium">
+                Monitoreo de equipos, estados técnicos y reportes de averías.
+              </p>
+            </div>
           </div>
+          
+          <div className="flex flex-col sm:flex-row w-full xl:w-auto gap-4 items-center">
+             <div className="flex bg-white/40 dark:bg-black/20 p-1 rounded-2xl border border-white/40 dark:border-white/5 w-full sm:w-auto overflow-x-auto no-scrollbar">
+              {['todas', 'activa', 'mantenimiento', 'inactiva'].map(f => (
+                <button
+                  key={f}
+                  onClick={() => setFilter(f)}
+                  className={`py-2 px-5 rounded-xl text-xs font-black uppercase tracking-widest transition-all whitespace-nowrap ${
+                    filter === f 
+                      ? 'bg-primary text-white shadow-lg' 
+                      : 'text-gray-500 hover:text-primary'
+                  }`}
+                >
+                  {f === 'mantenimiento' ? 'Mantenimiento' : f}
+                </button>
+              ))}
+            </div>
 
-          <button 
-            onClick={() => openModal()}
-            className="flex items-center justify-center gap-2 bg-primary hover:bg-primary-dark text-white w-full sm:w-auto px-6 py-2.5 rounded-xl font-bold shadow-soft transition-colors"
-          >
-            <Plus className="w-5 h-5" />
-            Registrar Equipo
-          </button>
+            <div className="relative w-full sm:w-64 group">
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 group-focus-within:text-primary transition-colors" />
+              <input 
+                type="text" 
+                placeholder="Rastrear equipo..." 
+                className="w-full pl-12 pr-4 py-3.5 rounded-2xl border-none bg-white/60 dark:bg-white/5 focus:bg-white dark:focus:bg-white/10 ring-1 ring-black/5 dark:ring-white/10 focus:ring-2 focus:ring-primary backdrop-blur-sm outline-none transition-all dark:text-white shadow-inner font-medium"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+              />
+            </div>
+
+            <button 
+              onClick={() => openModal()}
+              className="flex items-center justify-center gap-2 bg-gradient-to-r from-primary to-primary-dark text-white w-full sm:w-auto px-8 py-3.5 rounded-2xl font-bold shadow-xl shadow-primary/30 transition-all hover:-translate-y-1"
+            >
+              <Plus className="w-5 h-5" />
+              Alta de Equipo
+            </button>
+          </div>
         </div>
       </div>
 
       {loading ? (
-        <div className="flex justify-center p-12">
-          <div className="animate-spin rounded-full h-12 w-12 border-t-4 border-b-4 border-primary"></div>
+        <div className="flex justify-center p-20">
+          <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-primary"></div>
         </div>
       ) : filteredMaquinas.length === 0 ? (
-        <div className="bg-light-surface dark:bg-dark-surface rounded-2xl p-12 text-center border border-light-border dark:border-dark-border shadow-soft">
-          <Wrench className="w-16 h-16 text-gray-300 dark:text-gray-600 mx-auto mb-4" />
-          <h3 className="text-xl font-bold text-light-text dark:text-dark-text">No hay maquinaria registrada</h3>
-          <p className="text-light-textMuted dark:text-dark-textMuted mt-2">Registra un nuevo equipo usando el botón superior para empezar.</p>
+        <div className="glass-panel rounded-3xl p-16 text-center">
+          <ServerOff className="w-20 h-20 text-gray-300 dark:text-gray-600 mx-auto mb-6 opacity-40" />
+          <h3 className="text-2xl font-bold text-light-text dark:text-dark-text">Sin Equipos en Radar</h3>
+          <p className="text-light-textMuted dark:text-gray-400 mt-2 text-lg">No hemos localizado maquinaria con los filtros actuales.</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
@@ -218,61 +222,58 @@ const Maquinaria = () => {
                   initial={{ opacity: 0, scale: 0.9 }}
                   animate={{ opacity: 1, scale: 1 }}
                   exit={{ opacity: 0, scale: 0.9 }}
-                  transition={{ duration: 0.2, delay: (idx % 10) * 0.05 }}
+                  transition={{ duration: 0.3, delay: (idx % 12) * 0.05 }}
                   key={m.id_maquina}
-                  className="bg-light-surface dark:bg-dark-surface rounded-2xl p-5 shadow-soft border border-light-border dark:border-dark-border relative group overflow-hidden"
+                  className="glass-card rounded-[2.5rem] p-6 relative group overflow-hidden neon-hover transition-transform duration-300 hover:-translate-y-2"
                 >
-                  <div className={`absolute top-0 left-0 w-full h-1.5 ${st.color === 'red' ? 'bg-red-500' : st.color === 'yellow' ? 'bg-yellow-500' : 'bg-green-500'}`} />
+                  <div className={`absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r ${st.color}`} />
                   
-                  <div className="flex justify-between items-start mb-4 mt-2">
-                    <div className={`p-2.5 rounded-xl flex items-center justify-center border-2 border-white dark:border-dark-bg shadow-sm ${
-                      st.color === 'red' ? 'bg-red-100 dark:bg-red-900/40' : 
-                      st.color === 'yellow' ? 'bg-yellow-100 dark:bg-yellow-900/40' : 
-                      'bg-green-100 dark:bg-green-900/40'
-                    }`}>
+                  <div className="flex justify-between items-start mb-6 pt-2">
+                    <div className="p-3 bg-white/50 dark:bg-black/30 rounded-2xl border border-white/30 dark:border-white/5 shadow-sm">
                       {st.icon}
                     </div>
-                    
-                    <div className={`px-2 py-1 rounded-md text-[10px] font-bold tracking-wider uppercase ${
-                      st.color === 'red' ? 'text-red-700 bg-red-100 dark:text-red-400 dark:bg-red-900/40' : 
-                      st.color === 'yellow' ? 'text-yellow-700 bg-yellow-100 dark:text-yellow-400 dark:bg-yellow-900/40' : 
-                      'text-green-700 bg-green-100 dark:text-green-400 dark:bg-green-900/40'
+                    <div className={`px-3 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-widest border border-white/40 dark:border-white/10 ${
+                       m.estado === 'activa' ? 'bg-green-500/10 text-green-500' :
+                       m.estado === 'mantenimiento' ? 'bg-orange-500/10 text-orange-500' : 'bg-red-500/10 text-red-500'
                     }`}>
                       {st.text}
                     </div>
                   </div>
 
-                  <h3 className="text-lg font-bold text-light-text dark:text-dark-text truncate">
+                  <h3 className="text-xl font-black text-light-text dark:text-white truncate mb-1 tracking-tight">
                     {m.nombre_maquina}
                   </h3>
-                  <p className="text-sm font-medium text-light-textMuted dark:text-dark-textMuted">
-                    {m.tipo_nombre || 'General'}
+                  <p className="text-xs font-black text-gray-400 uppercase tracking-widest mb-6">
+                    {m.tipo_nombre || 'Categoría General'}
                   </p>
-
-                  <div className="mt-4 bg-gray-50/50 dark:bg-gray-800/30 p-2.5 rounded-xl text-xs space-y-2">
-                    <div className="flex justify-between">
-                      <span className="text-light-textMuted dark:text-dark-textMuted font-semibold">Adquirido:</span>
-                      <span className="text-light-text dark:text-dark-text font-bold">{m.fecha_adquisicion || 'N/A'}</span>
+                  
+                  <div className="bg-white/30 dark:bg-black/20 rounded-3xl p-5 border border-white/20 dark:border-white/5 space-y-4">
+                    <div className="flex justify-between items-center text-xs">
+                       <span className="flex items-center gap-1.5 font-bold text-gray-400">
+                         <Calendar className="w-3.5 h-3.5 text-primary" /> Adquisición
+                       </span>
+                       <span className="font-black text-light-text dark:text-white">{m.fecha_adquisicion || 'N/A'}</span>
                     </div>
-                    <div className="flex justify-between">
-                      <span className="text-light-textMuted dark:text-dark-textMuted font-semibold">Mantenimiento:</span>
-                      <span className="text-light-text dark:text-dark-text font-bold">{m.ultimo_mantenimiento || 'N/A'}</span>
+                    <div className="flex justify-between items-center text-xs">
+                       <span className="flex items-center gap-1.5 font-bold text-gray-400">
+                         <Clock className="w-3.5 h-3.5 text-primary" /> Última Rev.
+                       </span>
+                       <span className="font-black text-light-text dark:text-white">{m.ultimo_mantenimiento || 'N/A'}</span>
                     </div>
                   </div>
 
-                  <div className="mt-4 pt-1 flex justify-end gap-1 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
-                    <button 
-                      onClick={() => openModal(m)}
-                      className="p-1.5 text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-500/10 rounded-lg transition-colors flex items-center gap-1 text-sm font-semibold"
-                    >
-                      <Edit className="w-4 h-4" /> 
-                    </button>
-                    <button 
-                      onClick={() => handleDelete(m)}
-                      className="p-1.5 text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-lg transition-colors flex items-center gap-1 text-sm font-semibold"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
+                  <div className="mt-6 flex justify-between items-center opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
+                    <div className="p-2 bg-primary/5 rounded-xl border border-primary/10">
+                       <Info className="w-4 h-4 text-primary" title={m.observaciones || 'Sin notas'} />
+                    </div>
+                    <div className="flex gap-1">
+                      <button onClick={() => openModal(m)} className="p-2 text-gray-400 hover:text-primary transition-colors">
+                        <Edit className="w-5 h-5" />
+                      </button>
+                      <button onClick={() => handleDelete(m)} className="p-2 text-gray-400 hover:text-red-500 transition-colors">
+                        <Trash2 className="w-5 h-5" />
+                      </button>
+                    </div>
                   </div>
                 </motion.div>
               );
@@ -281,145 +282,71 @@ const Maquinaria = () => {
         </div>
       )}
 
-      {/* Modal */}
+      {/* Exotic Modal CRUD */}
       <AnimatePresence>
         {isModalOpen && (
           <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-            <motion.div 
-              initial={{ opacity: 0 }} 
-              animate={{ opacity: 1 }} 
-              exit={{ opacity: 0 }} 
-              onClick={closeModal}
-              className="absolute inset-0 bg-dark-bg/60 backdrop-blur-sm"
-            />
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95, y: 20 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.95, y: 20 }}
-              className="bg-light-surface dark:bg-dark-surface w-full max-w-lg rounded-2xl shadow-2xl overflow-hidden border border-light-border dark:border-dark-border relative z-10"
-            >
-              <div className="px-6 py-5 border-b border-light-border dark:border-dark-border flex justify-between items-center bg-gray-50/50 dark:bg-gray-800/30">
-                <h3 className="text-xl font-bold text-light-text dark:text-dark-text flex items-center gap-2">
-                  <Wrench className="w-6 h-6 text-primary" />
-                  {editingId ? 'Gestión de Máquina' : 'Nueva Máquina'}
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={closeModal} className="absolute inset-0 bg-black/60 backdrop-blur-md"/>
+            <motion.div initial={{ opacity: 0, scale: 0.9, y: 40 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95, y: 20 }} className="glass-panel w-full max-w-xl rounded-[2.5rem] shadow-2xl border border-white/40 dark:border-white/10 relative z-10 overflow-hidden">
+              <div className="absolute top-0 right-0 w-64 h-64 bg-primary/20 blur-[50px] -z-10 rounded-full"></div>
+              
+              <div className="px-8 py-6 flex justify-between items-center border-b border-white/20 dark:border-white/10 bg-white/30 dark:bg-black/20">
+                <h3 className="text-2xl font-black text-light-text dark:text-white flex items-center gap-3">
+                    <Activity className="w-6 h-6 text-primary" />
+                  {editingId ? 'Reporte Técnico' : 'Alta de Activo'}
                 </h3>
-                <button onClick={closeModal} className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition-colors p-1 rounded-full hover:bg-white dark:hover:bg-gray-700">
+                <button onClick={closeModal} className="text-gray-400 hover:rotate-90 transition-transform">
                   <X className="w-6 h-6" />
                 </button>
               </div>
 
-              <div className="p-6">
-                <form id="maq-form" onSubmit={handleSubmit} className="space-y-4">
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div className="sm:col-span-2">
-                      <label className="block text-sm font-semibold text-light-text dark:text-dark-text mb-1.5">
-                        Nombre de Máquina
-                      </label>
-                      <input
-                        type="text"
-                        name="nombre_maquina"
-                        required
-                        value={formData.nombre_maquina || ''}
-                        onChange={handleInputChange}
-                        className="w-full px-4 py-2.5 rounded-xl border border-light-border dark:border-dark-border bg-white dark:bg-black/20 focus:ring-2 focus:ring-primary outline-none transition-all dark:text-white"
-                        placeholder="Ej. Cinta de Correr Pro"
-                      />
+              <div className="p-8">
+                <form id="maq-form" onSubmit={handleSubmit} className="space-y-6">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                    <div className="space-y-2">
+                       <label className="text-[10px] uppercase tracking-widest font-black text-gray-400 ml-1">Nombre del Equipo</label>
+                       <input type="text" name="nombre_maquina" required value={formData.nombre_maquina || ''} onChange={handleInputChange} className="w-full px-5 py-3.5 rounded-2xl border-none bg-white/60 dark:bg-white/5 focus:bg-white dark:focus:bg-white/10 ring-1 ring-black/5 dark:ring-white/10 focus:ring-2 focus:ring-primary backdrop-blur-sm outline-none transition-all dark:text-white shadow-inner font-medium" />
                     </div>
-                    
-                    <div>
-                      <label className="block text-sm font-semibold text-light-text dark:text-dark-text mb-1.5">
-                        Tipo de Máquina
-                      </label>
-                      <select
-                        name="id_tipo"
-                        required
-                        value={formData.id_tipo || ''}
-                        onChange={handleInputChange}
-                        className="w-full px-4 py-2.5 rounded-xl border border-light-border dark:border-dark-border bg-white dark:bg-black/20 focus:ring-2 focus:ring-primary outline-none transition-all dark:text-white appearance-none"
-                      >
-                        <option value="">Seleccione Categoría</option>
-                        {tipos.map(t => (
-                          <option key={t.id_tipo} value={t.id_tipo}>{t.nombre_tipo}</option>
-                        ))}
-                      </select>
+                    <div className="space-y-2">
+                       <label className="text-[10px] uppercase tracking-widest font-black text-gray-400 ml-1">Estatus Operativo</label>
+                        <select name="estado" required value={formData.estado || 'activa'} onChange={handleInputChange} className="w-full px-5 py-3.5 rounded-2xl border-none bg-white/60 dark:bg-white/5 focus:bg-white dark:focus:bg-white/10 ring-1 ring-black/5 dark:ring-white/10 focus:ring-2 focus:ring-primary backdrop-blur-sm outline-none transition-all dark:text-white shadow-inner font-bold appearance-none">
+                          <option value="activa">Operativa / Activa</option>
+                          <option value="mantenimiento">Mantenimiento</option>
+                          <option value="inactiva">Avería Crítica</option>
+                        </select>
                     </div>
+                  </div>
 
-                    <div>
-                      <label className="block text-sm font-semibold text-light-text dark:text-dark-text mb-1.5">
-                        Estado Actual
-                      </label>
-                      <select
-                        name="estado"
-                        required
-                        value={formData.estado || 'activa'}
-                        onChange={handleInputChange}
-                        className="w-full px-4 py-2.5 rounded-xl border border-light-border dark:border-dark-border bg-white dark:bg-black/20 focus:ring-2 focus:ring-primary outline-none transition-all dark:text-white appearance-none"
-                      >
-                        <option value="activa">Operativa / Activa</option>
-                        <option value="mantenimiento">En Mantenimiento</option>
-                        <option value="inactiva">Dañada / Inactiva</option>
-                      </select>
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <div className="sm:col-span-1 space-y-2">
+                       <label className="text-[10px] uppercase tracking-widest font-black text-gray-400 ml-1">Categoría</label>
+                        <select name="id_tipo" required value={formData.id_tipo || ''} onChange={handleInputChange} className="w-full px-4 py-3.5 rounded-2xl border-none bg-white/60 dark:bg-white/5 focus:bg-white dark:focus:bg-white/10 ring-1 ring-black/5 dark:ring-white/10 focus:ring-2 focus:ring-primary backdrop-blur-sm outline-none transition-all dark:text-white shadow-inner font-bold appearance-none">
+                          <option value="">Clasificar...</option>
+                          {tipos.map(t => (
+                            <option key={t.id_tipo} value={t.id_tipo}>{t.nombre_tipo}</option>
+                          ))}
+                        </select>
                     </div>
+                    <div className="space-y-2">
+                       <label className="text-[10px] uppercase tracking-widest font-black text-gray-400 ml-1">Alta</label>
+                        <input type="date" name="fecha_adquisicion" value={formData.fecha_adquisicion || ''} onChange={handleInputChange} className="w-full px-4 py-3.5 rounded-2xl border-none bg-white/60 dark:bg-white/5 focus:bg-white dark:focus:bg-white/10 ring-1 ring-black/5 dark:ring-white/10 focus:ring-2 focus:ring-primary outline-none transition-all dark:text-white shadow-inner font-medium" />
+                    </div>
+                    <div className="space-y-2">
+                       <label className="text-[10px] uppercase tracking-widest font-black text-gray-400 ml-1">Rev.</label>
+                        <input type="date" name="ultimo_mantenimiento" value={formData.ultimo_mantenimiento || ''} onChange={handleInputChange} className="w-full px-4 py-3.5 rounded-2xl border-none bg-white/60 dark:bg-white/5 focus:bg-white dark:focus:bg-white/10 ring-1 ring-black/5 dark:ring-white/10 focus:ring-2 focus:ring-primary outline-none transition-all dark:text-white shadow-inner font-medium" />
+                    </div>
+                  </div>
 
-                    <div>
-                      <label className="block text-sm font-semibold text-light-text dark:text-dark-text mb-1.5">
-                        Ingreso (Opcional)
-                      </label>
-                      <input
-                        type="date"
-                        name="fecha_adquisicion"
-                        value={formData.fecha_adquisicion || ''}
-                        onChange={handleInputChange}
-                        className="w-full px-4 py-2.5 rounded-xl border border-light-border dark:border-dark-border bg-white dark:bg-black/20 focus:ring-2 focus:ring-primary outline-none transition-all dark:text-white"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-semibold text-light-text dark:text-dark-text mb-1.5">
-                        Mantenimiento (Opccional)
-                      </label>
-                      <input
-                        type="date"
-                        name="ultimo_mantenimiento"
-                        value={formData.ultimo_mantenimiento || ''}
-                        onChange={handleInputChange}
-                        className="w-full px-4 py-2.5 rounded-xl border border-light-border dark:border-dark-border bg-white dark:bg-black/20 focus:ring-2 focus:ring-primary outline-none transition-all dark:text-white"
-                      />
-                    </div>
-                    
-                    <div className="sm:col-span-2">
-                      <label className="block text-sm font-semibold text-light-text dark:text-dark-text mb-1.5">
-                        Observaciones adicionales
-                      </label>
-                      <textarea
-                        name="observaciones"
-                        value={formData.observaciones || ''}
-                        onChange={handleInputChange}
-                        rows="2"
-                        className="w-full px-4 py-2.5 rounded-xl border border-light-border dark:border-dark-border bg-white dark:bg-black/20 focus:ring-2 focus:ring-primary outline-none transition-all dark:text-white resize-none"
-                        placeholder="Detalles sobre el uso, fallas o reparaciones conjuntas..."
-                      />
-                    </div>
+                  <div className="space-y-2">
+                    <label className="text-[10px] uppercase tracking-widest font-black text-gray-400 ml-1">Bitácora de Observaciones</label>
+                    <textarea name="observaciones" value={formData.observaciones || ''} onChange={handleInputChange} rows="2" className="w-full px-5 py-3.5 rounded-2xl border-none bg-white/60 dark:bg-white/5 focus:bg-white dark:focus:bg-white/10 ring-1 ring-black/5 dark:ring-white/10 focus:ring-2 focus:ring-primary backdrop-blur-sm outline-none transition-all dark:text-white shadow-inner font-medium resize-none" />
                   </div>
                 </form>
               </div>
 
-              <div className="px-6 py-4 border-t border-light-border dark:border-dark-border flex justify-end gap-3 bg-gray-50/50 dark:bg-gray-800/30">
-                <button 
-                  type="button" 
-                  onClick={closeModal}
-                  className="px-5 py-2.5 rounded-xl font-bold text-light-textMuted dark:text-dark-textMuted hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
-                >
-                  Cancelar
-                </button>
-                <button 
-                  type="submit" 
-                  form="maq-form"
-                  className="px-5 py-2.5 rounded-xl font-bold bg-primary text-white hover:bg-primary-dark shadow-lg shadow-primary/20 transition-all flex items-center gap-2"
-                >
-                  {editingId ? <Edit className="w-5 h-5" /> : <Plus className="w-5 h-5" />}
-                  {editingId ? 'Guardar Cambios' : 'Registrar Equipo'}
-                </button>
+              <div className="px-8 py-5 border-t border-white/20 dark:border-white/10 flex justify-end gap-3 bg-white/30 dark:bg-black/20">
+                <button type="button" onClick={closeModal} className="px-6 py-3 rounded-2xl font-bold bg-white/50 dark:bg-white/10 text-gray-700 dark:text-white hover:bg-white transition-colors">Cancelar</button>
+                <button type="submit" form="maq-form" className="px-8 py-3 rounded-2xl font-bold bg-gradient-to-r from-primary to-primary-dark text-white shadow-xl shadow-primary/30 transition-all transform hover:-translate-y-1">Guardar Registro</button>
               </div>
             </motion.div>
           </div>
